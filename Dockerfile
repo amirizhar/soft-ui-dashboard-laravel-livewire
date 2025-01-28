@@ -24,18 +24,30 @@ RUN a2enmod rewrite
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/local/bin/composer
 
-# Copy the Laravel app into the container
-COPY . /var/www/html
-
 # Set the working directory
 WORKDIR /var/www/html
 
+# Copy only the necessary files
+COPY composer.json composer.lock ./
+
 # Install Laravel dependencies using Composer
 RUN composer install --no-dev --optimize-autoloader
+
+# Copy the application files into the container
+COPY . .
 
 # Set correct permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Optimize Laravel for production
+RUN php artisan config:clear && \
+    php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache
+
 # Expose port 80 for Apache
 EXPOSE 80
+
+# Start Apache in the foreground
+CMD ["apache2-foreground"]
