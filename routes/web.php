@@ -35,7 +35,7 @@ Route::get('/', function() {
 });
 
 Route::get('/sign-up', SignUp::class)->name('sign-up');
-Route::get('/login', Login::class)->name('login');
+Route::POST('/login', Login::class)->name('login');
 Route::get('/login/forgot-password', ForgotPassword::class)->name('forgot-password');
 Route::get('/reset-password/{id}',ResetPassword::class)->name('reset-password')->middleware('signed');
 Route::middleware('auth')->group(function () {
@@ -50,3 +50,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/laravel-user-management', UserManagement::class)->name('user-management');
 });
 
+
+// Add this POST route for login
+// Route::post('/login', [LoginController::class, 'login'])->name('login.post');
