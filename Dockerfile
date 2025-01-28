@@ -1,7 +1,6 @@
-# Use the official PHP image with Apache
-FROM php:8.2-apache
+# Stage 1: Build the PHP extensions and dependencies
+FROM php:8.2-apache AS build
 
-# Install dependencies and PHP extensions in one RUN statement
 RUN apt-get update && apt-get install -y \
     apt-utils \
     libzip-dev \
@@ -22,6 +21,12 @@ RUN apt-get update && apt-get install -y \
     intl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Stage 2: Copy the application and configure the web server
+FROM php:8.2-apache
+
+# Copy the installed extensions and libraries
+COPY --from=build /usr/local/lib/php/extensions /usr/local/lib/php/extensions
+
 # Enable Apache rewrite module
 RUN a2enmod rewrite
 
@@ -31,29 +36,17 @@ COPY --from=composer:2.6 /usr/bin/composer /usr/local/bin/composer
 # Set the working directory
 WORKDIR /var/www/html
 
-# Copy only the necessary files
-COPY composer.json composer.lock ./
-
-# Install Laravel dependencies using Composer
-RUN composer install --no-dev --optimize-autoloader
-
-# Copy the application files into the container
+# Copy application files
 COPY . .
+
+# Install Laravel dependencies
+RUN composer install --no-dev --optimize-autoloader
 
 # Set correct permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Optimize Laravel for production
-RUN php artisan config:clear && \
-    php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
-
-# Set Apache's document root to Laravel's public folder
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
-
-# Expose port 80 for Apache
+# Expose port 80
 EXPOSE 80
 
 # Start Apache in the foreground
