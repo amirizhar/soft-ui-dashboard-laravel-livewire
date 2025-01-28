@@ -46,3 +46,7 @@ EXPOSE 80
 # Clean up apt cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Configure Apache to serve the public directory
+COPY ./docker/000-default.conf /etc/apache2/sites-available/000-default.conf
+
+
