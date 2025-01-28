@@ -16,8 +16,12 @@ COPY . /var/www/html
 # Set the working directory
 WORKDIR /var/www/html
 
-# Run Composer to install Laravel dependencies
-RUN composer install
+# Set correct permissions for Laravel (storage & bootstrap/cache)
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Install Laravel dependencies using Composer
+RUN composer install --no-dev --optimize-autoloader
 
 # Expose port 80 for Apache
 EXPOSE 80
