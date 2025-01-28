@@ -4,17 +4,17 @@ FROM php:8.1-apache
 # Install necessary PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql
 
-# Enable apache rewrite module
+# Enable Apache rewrite module
 RUN a2enmod rewrite
+
+# Install Composer
+COPY --from=composer:2.6 /usr/bin/composer /usr/local/bin/composer
 
 # Copy the Laravel application to the container
 COPY . /var/www/html
 
 # Set the working directory
 WORKDIR /var/www/html
-
-# Install Composer
-# RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Run Composer to install Laravel dependencies
 RUN composer install
