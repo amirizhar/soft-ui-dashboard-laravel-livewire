@@ -3,11 +3,15 @@ FROM php:8.2-apache
 
 # Install dependencies and PHP extensions in one RUN statement
 RUN apt-get update && apt-get install -y \
+    apt-utils \
     libzip-dev \
     zip \
     unzip \
     libonig-dev \
     libxml2-dev \
+    libicu-dev \
+    default-mysql-client \
+    && docker-php-ext-configure intl \
     && docker-php-ext-install \
     pdo \
     pdo_mysql \
@@ -45,6 +49,9 @@ RUN php artisan config:clear && \
     php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache
+
+# Set Apache's document root to Laravel's public folder
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
 # Expose port 80 for Apache
 EXPOSE 80
